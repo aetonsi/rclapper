@@ -1,3 +1,4 @@
 tools/rclone.config.ini
 logs/*.log
 config/*.txt
+presets/*.cmd

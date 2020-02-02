@@ -1,4 +1,6 @@
 @echo off & setlocal & setlocal enabledelayedexpansion & pushd "%~dp0" & set "__FILE__=%~f0" & set "__FILE__BASENAME__=%~nx0"
+title %~nx0
+title %~nx0 %* 2>nul
 
 rem ====== setup
 set "CONFIG_JOBS=config\jobs.txt"

@@ -119,9 +119,9 @@ echo.
 for /F "delims=| tokens=1,2,3,4 usebackq" %%A in ("%CONFIG_JOBS%") do (
 	for /F "tokens=* usebackq" %%R in ("%CONFIG_REMOTES%") do (
 		rem %%A=local dir
-		rem %%C=remote prefix (optional)
+		rem %%C=remote prefix [optional]
 		rem %%R=remote name
-		rem %%D=remote suffix (optional)
+		rem %%D=remote suffix [optional]
 		rem %%B=remote dir
 		set "cmd1=!TOOL_RCLONE! dedupe --dedupe-mode rename %%~C%%~R%%~D:%%B"
 		set "cmd2=!TOOL_RCLONE! sync !SWITCHES! %%A %%~C%%~R%%~D:%%B"

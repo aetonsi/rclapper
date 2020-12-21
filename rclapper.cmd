@@ -1,6 +1,5 @@
 @echo off & setlocal & setlocal enabledelayedexpansion & pushd "%~dp0" & set "__FILE__=%~f0" & set "__FILE__BASENAME__=%~nx0"
-title %~nx0
-title %~nx0 %* 2>nul
+call :fn_title
 
 rem ====== setup
 set "CONFIG_JOBS=config\jobs.txt"
@@ -107,6 +106,7 @@ echo Starting in 10 seconds...
 timeout /t 10
 echo.
 :redo
+call :fn_title
 echo ====================================
 echo ====================================
 echo STARTED @ %DT%
@@ -177,4 +177,9 @@ exit /b %errorlevel%
 	echo.   c:\documents^|/documents
 	echo.   c:\secret_documents^|/secret_documents^|crypt_
 	echo.
+goto:eof
+
+:fn_title
+	title %__FILE__BASENAME__%
+	title %__FILE__BASENAME__% %* 2>nul
 goto:eof

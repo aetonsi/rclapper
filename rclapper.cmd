@@ -2,15 +2,16 @@
 call :fn_title
 
 rem ====== setup
+set "CONFIG_RCLONE=config\rclone.config.ini"
 set "CONFIG_JOBS=config\jobs.txt"
 set "CONFIG_REMOTES=config\remotes.txt"
 set "CONFIG_SWITCHES=config\switches.txt"
 set "CONFIG_MINUTES=config\minutes.txt"
 
 set "TOOL_TEE=tee"
-set "TOOL_RCLONE=call tools\rclone"
+set "TOOL_RCLONE=call rclone.exe"
 set "TOOL_WAIT=call tools\wait"
-set "TOOL_GETDATETIME=tools\getDateTime"
+set "TOOL_GETDATETIME=call tools\getDateTime"
 
 FOR /F "tokens=* USEBACKQ" %%F IN (`"%TOOL_GETDATETIME%"`) DO SET "DT=%%~F"
 set "LOG_FILE="logs\log_%DT%.log""
@@ -30,6 +31,12 @@ if "%~1" EQU "--teeing" (
 )
 if "%~1" EQU "--nolog" (
 	set NOLOG=1
+	shift
+	goto :parseArgs
+)
+if "%~1" EQU "--config-rclone" (
+	set "CONFIG_RCLONE=%~2"
+	shift
 	shift
 	goto :parseArgs
 )
@@ -59,6 +66,7 @@ if "%~1" EQU "--config-minutes" (
 )
 
 
+if not exist "%CONFIG_RCLONE%" echo.>"%CONFIG_RCLONE%"
 if not exist "%CONFIG_JOBS%" echo.>"%CONFIG_JOBS%"
 if not exist "%CONFIG_REMOTES%" echo.>"%CONFIG_REMOTES%"
 if not exist "%CONFIG_SWITCHES%" (
@@ -77,6 +85,7 @@ if not exist "%CONFIG_MINUTES%" (
 )
 
 echo Parsed args:
+echo CONFIG_RCLONE   = %CONFIG_RCLONE%
 echo CONFIG_JOBS     = %CONFIG_JOBS%
 echo CONFIG_REMOTES  = %CONFIG_REMOTES%
 echo CONFIG_SWITCHES = %CONFIG_SWITCHES%
@@ -130,8 +139,8 @@ for /F "delims=| tokens=1,2,3,4 usebackq" %%A in ("%CONFIG_JOBS%") do (
 		rem %%R=remote name
 		rem %%D=remote suffix [optional]
 		rem %%B=remote dir
-		set "cmd1=!TOOL_RCLONE! dedupe --dedupe-mode rename %%~C%%~R%%~D:%%B"
-		set "cmd2=!TOOL_RCLONE! sync !SWITCHES! %%A %%~C%%~R%%~D:%%B"
+		set "cmd1=!TOOL_RCLONE! --config=%CONFIG_RCLONE% dedupe --dedupe-mode rename --by-hash %%~C%%~R%%~D:%%B"
+		set "cmd2=!TOOL_RCLONE! --config=%CONFIG_RCLONE% sync !SWITCHES! %%A %%~C%%~R%%~D:%%B"
 		echo ====================================
 		echo !cmd1!
 		echo !cmd2!

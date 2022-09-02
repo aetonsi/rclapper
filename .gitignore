@@ -1,4 +1,4 @@
-tools/rclone.config.ini
 logs/*.log
+config/*.ini
 config/*.txt
 presets/*.cmd

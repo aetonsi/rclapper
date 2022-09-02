@@ -1,0 +1,9 @@
+--exclude="/System Volume Information/**"
+--exclude="/$RECYCLE.BIN/**"
+--exclude=desktop.ini
+--exclude=Thumbs.db
+--exclude=logs/**
+--exclude=vendor/**
+--exclude=node_modules/**
+--exclude=.git/**
+--exclude=.svn/**

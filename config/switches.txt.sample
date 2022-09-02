@@ -1,1 +1,13 @@
---exclude=vendor --exclude=node_modules --exclude=.git --exclude=.svn --exclude=desktop.ini --exclude "/System Volume Information/**" --exclude "/$RECYCLE.BIN/**" --exclude=Thumbs.db --delete-excluded --progress --verbose --copy-links --create-empty-src-dirs --retries 6 --retries-sleep 30s --stats 60s --stats-file-name-length 0 --buffer-size 32M --tpslimit 10 --transfers 2 --bwlimit 1300k
+--delete-excluded
+--progress
+--verbose
+--copy-links
+--create-empty-src-dirs
+--retries=6
+--retries-sleep=30s
+--stats=60s
+--stats-file-name-length=0
+--buffer-size=32M
+--tpslimit=10
+--transfers=2
+--bwlimit=1300k

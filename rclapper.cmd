@@ -6,6 +6,7 @@ set "CONFIG_RCLONE=config\rclone.config.ini"
 set "CONFIG_JOBS=config\jobs.txt"
 set "CONFIG_REMOTES=config\remotes.txt"
 set "CONFIG_SWITCHES=config\switches.txt"
+set "CONFIG_EXCLUDE=config\exclude.txt"
 set "CONFIG_MINUTES=config\minutes.txt"
 
 set "TOOL_TEE=tee"
@@ -58,6 +59,12 @@ if "%~1" EQU "--config-switches" (
 	shift
 	goto :parseArgs
 )
+if "%~1" EQU "--config-exclude" (
+	set "CONFIG_EXCLUDE=%~2"
+	shift
+	shift
+	goto :parseArgs
+)
 if "%~1" EQU "--config-minutes" (
 	set "CONFIG_MINUTES=%~2"
 	shift
@@ -76,6 +83,13 @@ if not exist "%CONFIG_SWITCHES%" (
 		echo.>"%CONFIG_SWITCHES%"
 	)
 )
+if not exist "%CONFIG_EXCLUDE%" (
+	if exist "%CONFIG_EXCLUDE%.sample" (
+		type "%CONFIG_EXCLUDE%.sample">"%CONFIG_EXCLUDE%"
+	) ELSE (
+		echo.>"%CONFIG_EXCLUDE%"
+	)
+)
 if not exist "%CONFIG_MINUTES%" (
 	if exist "%CONFIG_MINUTES%.sample" (
 		type "%CONFIG_MINUTES%.sample">"%CONFIG_MINUTES%"
@@ -89,11 +103,11 @@ echo CONFIG_RCLONE   = %CONFIG_RCLONE%
 echo CONFIG_JOBS     = %CONFIG_JOBS%
 echo CONFIG_REMOTES  = %CONFIG_REMOTES%
 echo CONFIG_SWITCHES = %CONFIG_SWITCHES%
+echo CONFIG_EXCLUDE  = %CONFIG_EXCLUDE%
 echo CONFIG_MINUTES  = %CONFIG_MINUTES%
 
 
 rem ====== main function
-for /F "usebackq tokens=*" %%A in ("%CONFIG_SWITCHES%") do set SWITCHES=%%A
 if not defined NOLOG (
 	if not defined TEEING (
 		where /q tee
@@ -117,10 +131,9 @@ if not defined NOLOG (
 		)
 	)
 )
-echo.
-echo Starting in 10 seconds...
-timeout /t 10
-echo.
+
+for /F "usebackq tokens=*" %%A in ("%CONFIG_SWITCHES%") do set "SWITCHES=!SWITCHES! %%A"
+for /F "usebackq tokens=*" %%A in ("%CONFIG_EXCLUDE%") do set "SWITCHES_EXCLUDE=!SWITCHES_EXCLUDE! %%A"
 :redo
 call :fn_title
 echo ====================================
@@ -128,8 +141,13 @@ echo ====================================
 echo STARTED @ %DT%
 chcp 65001
 echo picked up SWITCHES=!SWITCHES!
+echo picked up SWITCHES_EXCLUDE=!SWITCHES_EXCLUDE!
 echo ====================================
 echo ====================================
+echo.
+echo.
+echo Starting in 10 seconds...
+timeout /t 10
 echo.
 
 for /F "delims=| tokens=1,2,3,4 usebackq" %%A in ("%CONFIG_JOBS%") do (
@@ -140,7 +158,7 @@ for /F "delims=| tokens=1,2,3,4 usebackq" %%A in ("%CONFIG_JOBS%") do (
 		rem %%D=remote suffix [optional]
 		rem %%B=remote dir
 		set "cmd1=!TOOL_RCLONE! --config=%CONFIG_RCLONE% dedupe --dedupe-mode rename --by-hash %%~C%%~R%%~D:%%B"
-		set "cmd2=!TOOL_RCLONE! --config=%CONFIG_RCLONE% sync !SWITCHES! %%A %%~C%%~R%%~D:%%B"
+		set "cmd2=!TOOL_RCLONE! --config=%CONFIG_RCLONE% sync !SWITCHES_EXCLUDE! !SWITCHES! %%A %%~C%%~R%%~D:%%B"
 		echo ====================================
 		echo !cmd1!
 		echo !cmd2!

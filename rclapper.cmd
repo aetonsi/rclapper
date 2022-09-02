@@ -76,6 +76,12 @@ if not exist "%CONFIG_MINUTES%" (
 	)
 )
 
+echo Parsed args:
+echo CONFIG_JOBS     = %CONFIG_JOBS%
+echo CONFIG_REMOTES  = %CONFIG_REMOTES%
+echo CONFIG_SWITCHES = %CONFIG_SWITCHES%
+echo CONFIG_MINUTES  = %CONFIG_MINUTES%
+
 
 rem ====== main function
 for /F "usebackq tokens=*" %%A in ("%CONFIG_SWITCHES%") do set SWITCHES=%%A

@@ -15,23 +15,6 @@ set "TOOL_GETDATETIME=tools\getDateTime"
 FOR /F "tokens=* USEBACKQ" %%F IN (`"%TOOL_GETDATETIME%"`) DO SET "DT=%%~F"
 set "LOG_FILE="logs\log_%DT%.log""
 
-if not exist "%CONFIG_JOBS%" echo.>"%CONFIG_JOBS%"
-if not exist "%CONFIG_REMOTES%" echo.>"%CONFIG_REMOTES%"
-if not exist "%CONFIG_SWITCHES%" (
-	if exist "%CONFIG_SWITCHES%.sample" (
-		type "%CONFIG_SWITCHES%.sample">"%CONFIG_SWITCHES%"
-	) ELSE (
-		echo.>"%CONFIG_SWITCHES%"
-	)
-)
-if not exist "%CONFIG_MINUTES%" (
-	if exist "%CONFIG_MINUTES%.sample" (
-		type "%CONFIG_MINUTES%.sample">"%CONFIG_MINUTES%"
-	) ELSE (
-		echo.>"%CONFIG_MINUTES%"
-	)
-)
-
 
 
 rem ====== args parsing
@@ -73,6 +56,24 @@ if "%~1" EQU "--config-minutes" (
 	shift
 	shift
 	goto :parseArgs
+)
+
+
+if not exist "%CONFIG_JOBS%" echo.>"%CONFIG_JOBS%"
+if not exist "%CONFIG_REMOTES%" echo.>"%CONFIG_REMOTES%"
+if not exist "%CONFIG_SWITCHES%" (
+	if exist "%CONFIG_SWITCHES%.sample" (
+		type "%CONFIG_SWITCHES%.sample">"%CONFIG_SWITCHES%"
+	) ELSE (
+		echo.>"%CONFIG_SWITCHES%"
+	)
+)
+if not exist "%CONFIG_MINUTES%" (
+	if exist "%CONFIG_MINUTES%.sample" (
+		type "%CONFIG_MINUTES%.sample">"%CONFIG_MINUTES%"
+	) ELSE (
+		echo.>"%CONFIG_MINUTES%"
+	)
 )
 
 

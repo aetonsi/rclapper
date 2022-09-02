@@ -188,31 +188,35 @@ exit /b %errorlevel%
 
 :fn_help
 	echo !__FILE__BASENAME__!
-	echo DESCRIPTION:
+	echo === DESCRIPTION ===
 	echo rclone wrapper for continuous syncing to multiple remotes.
 	echo supports multiple sync jobs.
+	echo supports conditionally using crypt/alternative remotes by prefixing/suffixing the remote name (eg. if you have both a "mega" and a "mega_crypt" remotes you can choose to sync to any of the two by suffixing with "_crypt").
 	echo supports logging with tee (not included), if it's present in the system's PATH, current directory or ./tools/ directory.
-	echo supports conditionally using crypt/alternative remotes by prefixing/suffixing the remote name (eg. if you have both a "mega" and a "mega_crypt" remotes you can choose to sync to any of the two by suffixing with "crypt_").
 	echo.
-	echo POSSIBLE ARGS:
+	echo === POSSIBLE ARGS ===
 	echo --nolog = disables logging to ./logs/ folder
+	echo --config-rclone ^<path^> = sets CONFIG_RCLONE=^<path^>
 	echo --config-jobs ^<path^> = sets CONFIG_JOBS=^<path^>
-	echo --config-minutes ^<path^> = sets CONFIG_MINUTES=^<path^>
-	echo --config-switches ^<path^> = sets CONFIG_SWITCHES=^<path^>
 	echo --config-remotes ^<path^> = sets CONFIG_REMOTES=^<path^>
+	echo --config-switches ^<path^> = sets CONFIG_SWITCHES=^<path^>
+	echo --config-exclude ^<path^> = sets CONFIG_EXCLUDE=^<path^>
+	echo --config-minutes ^<path^> = sets CONFIG_MINUTES=^<path^>
 	echo.
-	echo CONFIG FILES INFO:
-	echo CONFIG_MINUTES structure: contains just 1 row with the number of minutes to wait between each loop. defaults to 60.
-	echo CONFIG_SWITCHES structure: contains just 1 row with switches for the rclone sync command.
-	echo CONFIG_REMOTES structure: 1 remote per line
-	echo example: this will run each sync job (from CONFIG_JOBS) to my "googledrive", "dropbox" AND "mega" remotes.
-	echo.   googledrive
-	echo.   dropbox
-	echo.   mega
+	echo === CONFIG FILES INFO ===
+	echo CONFIG_RCLONE: config file generated and manipulated via `rclone config`
 	echo CONFIG_JOBS structure: for each line, ^<SOURCE^>^|^<DEST^>[^|^<REMOTE PREFIX^>][^|^<REMOTE SUFFIX^>]
-	echo example: this will sync c:\documents to all of my ^<remote^>/documents, then it will sync c:\secret_documents to all of my crypt_^<remote^>/secret_documents.
-	echo.   c:\documents^|/documents
-	echo.   c:\secret_documents^|/secret_documents^|crypt_
+	echo.   example: this will sync c:\documents to all of my ^<remote^>/documents, then it will sync c:\secret_documents to all of my crypt_^<remote^>/secret_documents.
+	echo.      c:\documents^|/documents
+	echo.      c:\secret_documents^|/secret_documents^|crypt_
+	echo CONFIG_REMOTES structure: 1 remote per line
+	echo.   example: this will run each sync job (from CONFIG_JOBS) to my "googledrive", "dropbox" AND "mega" remotes.
+	echo.      googledrive
+	echo.      dropbox
+	echo.      mega
+	echo CONFIG_SWITCHES structure: contains multiple rows with switches for the rclone sync command.
+	echo CONFIG_EXCLUDE structure: contains multiple rows with "--exclude" (or similar) switches for the rclone sync command.
+	echo CONFIG_MINUTES structure: contains just 1 row with the number of minutes to wait between each loop. defaults to 60.
 	echo.
 goto:eof
 

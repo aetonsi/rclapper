@@ -138,7 +138,7 @@ for /F "usebackq tokens=*" %%A in ("%CONFIG_SWITCHES%") do set "SWITCHES=!SWITCH
 for /F "usebackq tokens=*" %%A in ("%CONFIG_EXCLUDE%") do set "SWITCHES_EXCLUDE=!SWITCHES_EXCLUDE! %%A"
 
 if defined PASSWORD_COMMAND (
-	call %PASSWORD_COMMAND%
+	FOR /F "tokens=* USEBACKQ" %%F IN (`%PASSWORD_COMMAND%`) DO SET "RCLONE_CONFIG_PASS=%%F"
 )
 
 :redo
@@ -213,7 +213,7 @@ exit /b %errorlevel%
 	echo. --config-switches ^<path^> = sets CONFIG_SWITCHES=^<path^>; this file contains multiple rows with switches for the rclone sync command; defaults to "config\switches.txt"
 	echo. --config-exclude ^<path^> = sets CONFIG_EXCLUDE=^<path^>; this file contains multiple rows with "--exclude" (or similar) switches for the rclone sync command; defaults to "config\exclude.txt"
 	echo. --config-minutes ^<path^> = sets CONFIG_MINUTES=^<number^>; number of minutes to wait between each loop; defaults to 60.
-	echo. --password-command ^<path or command^> = command or file to execute to retrieve the password of the rclone config.ini file. Will be run just once, at the beginning of execution; the command MUST set the variable "RCLONE_CONFIG_PASS"; do not pass this argument for unencrypted rclone config files.
+	echo. --password-command ^<path or command^> = command or file to execute to retrieve the password of the rclone config.ini file. Will be run just once, at the beginning of execution; the command must output the password; do not pass this argument for unencrypted rclone config files.
 	echo.
 goto:eof
 

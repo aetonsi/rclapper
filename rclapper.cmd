@@ -2,12 +2,14 @@
 call :fn_title
 
 rem ====== setup
+chcp 65001 >nul
 set "CONFIG_RCLONE=config\rclone.config.ini"
 set "CONFIG_JOBS=config\jobs.txt"
 set "CONFIG_REMOTES=config\remotes.txt"
 set "CONFIG_SWITCHES=config\switches.txt"
 set "CONFIG_EXCLUDE=config\exclude.txt"
-set "CONFIG_MINUTES=config\minutes.txt"
+set "CONFIG_MINUTES=60"
+set "PASSWORD_COMMAND="
 
 set "TOOL_TEE=tee"
 set "TOOL_RCLONE=call rclone.exe"
@@ -71,6 +73,12 @@ if "%~1" EQU "--config-minutes" (
 	shift
 	goto :parseArgs
 )
+if "%~1" EQU "--password-command" (
+	set "PASSWORD_COMMAND=%~2"
+	shift
+	shift
+	goto :parseArgs
+)
 
 
 if not exist "%CONFIG_RCLONE%" echo.>"%CONFIG_RCLONE%"
@@ -90,21 +98,15 @@ if not exist "%CONFIG_EXCLUDE%" (
 		echo.>"%CONFIG_EXCLUDE%"
 	)
 )
-if not exist "%CONFIG_MINUTES%" (
-	if exist "%CONFIG_MINUTES%.sample" (
-		type "%CONFIG_MINUTES%.sample">"%CONFIG_MINUTES%"
-	) ELSE (
-		echo.>"%CONFIG_MINUTES%"
-	)
-)
 
 echo Parsed args:
-echo CONFIG_RCLONE   = %CONFIG_RCLONE%
-echo CONFIG_JOBS     = %CONFIG_JOBS%
-echo CONFIG_REMOTES  = %CONFIG_REMOTES%
-echo CONFIG_SWITCHES = %CONFIG_SWITCHES%
-echo CONFIG_EXCLUDE  = %CONFIG_EXCLUDE%
-echo CONFIG_MINUTES  = %CONFIG_MINUTES%
+echo CONFIG_RCLONE    = %CONFIG_RCLONE%
+echo CONFIG_JOBS      = %CONFIG_JOBS%
+echo CONFIG_REMOTES   = %CONFIG_REMOTES%
+echo CONFIG_SWITCHES  = %CONFIG_SWITCHES%
+echo CONFIG_EXCLUDE   = %CONFIG_EXCLUDE%
+echo CONFIG_MINUTES   = %CONFIG_MINUTES%
+echo PASSWORD_COMMAND = %PASSWORD_COMMAND%
 
 
 rem ====== main function
@@ -134,15 +136,15 @@ if not defined NOLOG (
 
 for /F "usebackq tokens=*" %%A in ("%CONFIG_SWITCHES%") do set "SWITCHES=!SWITCHES! %%A"
 for /F "usebackq tokens=*" %%A in ("%CONFIG_EXCLUDE%") do set "SWITCHES_EXCLUDE=!SWITCHES_EXCLUDE! %%A"
+
+if defined PASSWORD_COMMAND (
+	call %PASSWORD_COMMAND%
+)
+
 :redo
 call :fn_title
 echo ====================================
-echo ====================================
-echo STARTED @ %DT%
-chcp 65001
-echo picked up SWITCHES=!SWITCHES!
-echo picked up SWITCHES_EXCLUDE=!SWITCHES_EXCLUDE!
-echo ====================================
+echo (re) STARTED @ %DT%
 echo ====================================
 echo.
 echo.
@@ -170,9 +172,7 @@ for /F "delims=| tokens=1,2,3,4 usebackq" %%A in ("%CONFIG_JOBS%") do (
 )
 
 
-if exist "%CONFIG_MINUTES%" for /F "tokens=1 usebackq" %%A in ("%CONFIG_MINUTES%") do set MINUTES_TO_WAIT_BETWEEN_SYNC=%%~A
-if not defined MINUTES_TO_WAIT_BETWEEN_SYNC set MINUTES_TO_WAIT_BETWEEN_SYNC=60
-%TOOL_WAIT% --allowbreak !MINUTES_TO_WAIT_BETWEEN_SYNC!
+%TOOL_WAIT% --allowbreak %CONFIG_MINUTES%
 echo.
 
 goto:redo
@@ -180,6 +180,7 @@ goto:redo
 
 rem ====== ending (should never be reached since the main function loops)
 :ending
+SET "RCLONE_CONFIG_PASS="
 popd
 pause
 exit /b %errorlevel%
@@ -187,36 +188,32 @@ exit /b %errorlevel%
 
 
 :fn_help
-	echo !__FILE__BASENAME__!
-	echo === DESCRIPTION ===
-	echo rclone wrapper for continuous syncing to multiple remotes.
-	echo supports multiple sync jobs.
-	echo supports conditionally using crypt/alternative remotes by prefixing/suffixing the remote name (eg. if you have both a "mega" and a "mega_crypt" remotes you can choose to sync to any of the two by suffixing with "_crypt").
-	echo supports logging with tee (not included), if it's present in the system's PATH, current directory or ./tools/ directory.
+	echo. !__FILE__BASENAME__!
 	echo.
-	echo === POSSIBLE ARGS ===
-	echo --nolog = disables logging to ./logs/ folder
-	echo --config-rclone ^<path^> = sets CONFIG_RCLONE=^<path^>
-	echo --config-jobs ^<path^> = sets CONFIG_JOBS=^<path^>
-	echo --config-remotes ^<path^> = sets CONFIG_REMOTES=^<path^>
-	echo --config-switches ^<path^> = sets CONFIG_SWITCHES=^<path^>
-	echo --config-exclude ^<path^> = sets CONFIG_EXCLUDE=^<path^>
-	echo --config-minutes ^<path^> = sets CONFIG_MINUTES=^<path^>
+	echo. === DESCRIPTION ===
+	echo. rclone wrapper for continuous syncing to multiple remotes.
+	echo. supports multiple sync jobs.
+	echo. supports conditionally using crypt/alternative remotes by prefixing/suffixing the remote name (eg. if you have both a "mega" and a "mega_crypt" remotes you can choose to sync to any of the two by suffixing with "_crypt").
+	echo. supports logging with tee (not included), if it's present in the system's PATH, current directory or ./tools/ directory.
 	echo.
-	echo === CONFIG FILES INFO ===
-	echo CONFIG_RCLONE: config file generated and manipulated via `rclone config`
-	echo CONFIG_JOBS structure: for each line, ^<SOURCE^>^|^<DEST^>[^|^<REMOTE PREFIX^>][^|^<REMOTE SUFFIX^>]
-	echo.   example: this will sync c:\documents to all of my ^<remote^>/documents, then it will sync c:\secret_documents to all of my crypt_^<remote^>/secret_documents.
-	echo.      c:\documents^|/documents
-	echo.      c:\secret_documents^|/secret_documents^|crypt_
-	echo CONFIG_REMOTES structure: 1 remote per line
-	echo.   example: this will run each sync job (from CONFIG_JOBS) to my "googledrive", "dropbox" AND "mega" remotes.
-	echo.      googledrive
-	echo.      dropbox
-	echo.      mega
-	echo CONFIG_SWITCHES structure: contains multiple rows with switches for the rclone sync command.
-	echo CONFIG_EXCLUDE structure: contains multiple rows with "--exclude" (or similar) switches for the rclone sync command.
-	echo CONFIG_MINUTES structure: contains just 1 row with the number of minutes to wait between each loop. defaults to 60.
+	echo. === POSSIBLE ARGS ===
+	echo. --nolog = disables logging to ./logs/ folder
+	echo. --config-rclone ^<path^> = sets config file path; this is the file which is generated and manipulated via `rclone config`; defaults to "config\jobs.txt"
+	echo. --config-jobs ^<path^> = sets CONFIG_JOBS=^<path^>; this is the file containing the list of jobs to be run against all remotes; defaults to "config\jobs.txt"
+	echo.       CONFIG_JOBS structure: for each line, ^<SOURCE^>^|^<DEST^>[^|^<REMOTE PREFIX^>][^|^<REMOTE SUFFIX^>]
+	echo.       example: this will sync c:\documents to all of my ^<remote^>/documents, then it will sync c:\secret_documents to all of my crypt_^<remote^>/secret_documents.
+	echo.           c:\documents^|/documents
+	echo.           c:\secret_documents^|/secret_documents^|crypt_
+	echo. --config-remotes ^<path^> = sets CONFIG_REMOTES=^<path^>; this is the file containing the list of the remotes against which to run jobs; defaults to "config\remotes.txt"
+	echo.       CONFIG_REMOTES structure: 1 remote per line
+	echo.       example: this will run each sync job (from CONFIG_JOBS) to my "googledrive", "dropbox" AND "mega" remotes.
+	echo.           googledrive
+	echo.           dropbox
+	echo.           mega
+	echo. --config-switches ^<path^> = sets CONFIG_SWITCHES=^<path^>; this file contains multiple rows with switches for the rclone sync command; defaults to "config\switches.txt"
+	echo. --config-exclude ^<path^> = sets CONFIG_EXCLUDE=^<path^>; this file contains multiple rows with "--exclude" (or similar) switches for the rclone sync command; defaults to "config\exclude.txt"
+	echo. --config-minutes ^<path^> = sets CONFIG_MINUTES=^<number^>; number of minutes to wait between each loop; defaults to 60.
+	echo. --password-command ^<path or command^> = command or file to execute to retrieve the password of the rclone config.ini file. Will be run just once, at the beginning of execution; the command MUST set the variable "RCLONE_CONFIG_PASS"; do not pass this argument for unencrypted rclone config files.
 	echo.
 goto:eof
 

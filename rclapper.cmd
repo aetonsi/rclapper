@@ -159,14 +159,26 @@ for /F "delims=| tokens=1,2,3,4 usebackq" %%A in ("%CONFIG_JOBS%") do (
 		rem %%R=remote name
 		rem %%D=remote suffix [optional]
 		rem %%B=remote dir
+
+		echo.&echo.&echo.&echo.
+
 		set "cmd1=!TOOL_RCLONE! --config=%CONFIG_RCLONE% dedupe --dedupe-mode rename --by-hash %%~C%%~R%%~D:%%B"
-		set "cmd2=!TOOL_RCLONE! --config=%CONFIG_RCLONE% sync !SWITCHES_EXCLUDE! !SWITCHES! %%A %%~C%%~R%%~D:%%B"
+		set "cmd2=!TOOL_RCLONE! --config=%CONFIG_RCLONE% dedupe --dedupe-mode rename %%~C%%~R%%~D:%%B"
+		set "cmd3=!TOOL_RCLONE! --config=%CONFIG_RCLONE% sync !SWITCHES_EXCLUDE! !SWITCHES! %%A %%~C%%~R%%~D:%%B"
+
 		echo ====================================
 		echo !cmd1!
-		echo !cmd2!
 		echo ====================================
 		!cmd1!
+		echo ====================================
+		echo !cmd2!
+		echo ====================================
 		!cmd2!
+		echo ====================================
+		echo !cmd3!
+		echo ====================================
+		!cmd3!
+
 		echo.&echo.&echo.&echo.
 	)
 )
